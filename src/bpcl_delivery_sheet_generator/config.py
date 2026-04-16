@@ -84,7 +84,7 @@ class RenderConfig:
             "full_address",
             "mobile_number",
             "otp",
-            "sign",
+            "customer_sign",
             "online_status",
         ]
     )
