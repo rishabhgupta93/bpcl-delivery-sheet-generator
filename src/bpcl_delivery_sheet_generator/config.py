@@ -142,7 +142,7 @@ class RenderConfig:
             15,  # Memo
             52,  # Address
             20,  # Mobile
-            22,  # OTP
+            28,  # OTP
             28,  # Signature
             10,  # Online
         ]
