@@ -63,34 +63,85 @@ class TransformConfig:
 @dataclass(slots=True)
 class RenderConfig:
     """
-    Configuration for PDF rendering and visible output columns.
+    Configuration for PDF rendering.
+
     Notes:
     - Internal model keeps address1/address2/address3 separate.
     - Final PDF can optionally render them as a single combined address.
     """
 
-    title: str = "BPCL Delivery Handover Sheet"
-    footer_note: str = (
-        "Blank fields are intentionally provided for OTP, Sign, and Online status."
-    )
-
-    visible_columns: List[str] = field(
-        default_factory=lambda: [
-            "slno",
-            "area",
-            "operator_name",
-            "booking_date",
-            "cash_memo_date",
-            "full_address",
-            "mobile_number",
-            "otp",
-            "customer_sign",
-            "online_status",
-        ]
-    )
+    title: str = "Venketeshwar Gas Service - Delivery Handover Sheet"
+    footer_note: str = "Collect OTP, take signature, and mark online delivery status."
 
     use_combined_address: bool = True
     address_separator: str = ", "
+
+    show_footer_note: bool = True
+    show_online_checkbox: bool = True
+    online_checkbox_text: str = "[ ]"
+
+    printed_datetime_format: str = "%d-%m-%Y %I:%M %p"
+
+    # page layout
+    left_margin_mm: float = 4
+    right_margin_mm: float = 4
+    top_margin_mm: float = 12
+    bottom_margin_mm: float = 10
+
+    # typography
+    title_font_size: float = 13.5
+    meta_font_size: float = 8.5
+    cell_font_size: float = 9.2
+    header_font_size: float = 9.0
+
+    # spacing
+    title_leading: float = 16
+    meta_leading: float = 10
+    cell_leading: float = 11
+    header_leading: float = 10.5
+
+    story_top_spacer_mm: float = 4
+    section_spacer_mm: float = 2.5
+
+    row_top_padding: float = 8
+    row_bottom_padding: float = 8
+    cell_left_padding: float = 3
+    cell_right_padding: float = 3
+
+    # header/footer drawing
+    page_header_y_mm: float = 8
+    page_divider_y_mm: float = 10
+    footer_y_mm: float = 6
+    page_header_font_size: float = 11
+    page_meta_font_size: float = 8
+    page_footer_font_size: float = 7.5
+
+    # styling
+    header_background_hex: str = "#EDEDED"
+    grid_color_hex: str = "#777777"
+    meta_text_hex: str = "#444444"
+    footer_text_hex: str = "#555555"
+
+    base_grid_line_width: float = 0.35
+    header_line_width: float = 0.8
+    writable_box_line_width: float = 0.8
+    divider_line_width: float = 0.5
+
+    # column widths in mm
+    col_widths_mm: List[float] = field(
+        default_factory=lambda: [
+            10,  # S.No.
+            18,  # Area
+            22,  # Operator
+            17,  # Booking
+            17,  # Memo
+            66,  # Address
+            22,  # Mobile
+            28,  # OTP
+            34,  # Signature
+            12,  # Online
+        ]
+    )
 
 
 @dataclass(slots=True)
