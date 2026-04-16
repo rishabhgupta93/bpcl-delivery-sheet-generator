@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bpcl-delivery-sheet-generator"
+version = "0.1.0"
+description = "Generate print-ready BPCL delivery handover PDFs from cash memo CSV files"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Rishabh Gupta" }
+]
+dependencies = [
+    "pandas>=2.0",
+    "reportlab>=4.0"
+]
+
+[project.scripts]
+bpcl-delivery-sheet = "bpcl_delivery_sheet_generator.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
