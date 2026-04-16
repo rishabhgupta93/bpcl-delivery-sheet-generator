@@ -51,23 +51,6 @@ class PDFRenderer:
 
         styles = getSampleStyleSheet()
 
-        self.title_style = ParagraphStyle(
-            "bpcl_title",
-            parent=styles["Title"],
-            fontName="Helvetica-Bold",
-            fontSize=self.render_cfg.title_font_size,
-            leading=self.render_cfg.title_leading,
-            textColor=colors.black,
-            spaceAfter=3,
-        )
-        self.meta_style = ParagraphStyle(
-            "bpcl_meta",
-            parent=styles["BodyText"],
-            fontName="Helvetica",
-            fontSize=self.render_cfg.meta_font_size,
-            leading=self.render_cfg.meta_leading,
-            textColor=colors.HexColor(self.render_cfg.meta_text_hex),
-        )
         self.cell_style = ParagraphStyle(
             "bpcl_cell",
             parent=styles["BodyText"],
@@ -145,11 +128,28 @@ class PDFRenderer:
         output_file = output_dir / "delivery_handover_all_deliverymen.pdf"
         self.logger.info("Creating combined PDF: %s", output_file)
 
-        doc = self._build_doc(output_file)
+        if not batches:
+            doc = self._build_doc(output_file, batch_name="", batch_count=0)
+            doc.build(
+                [],
+                onFirstPage=self._draw_page_frame,
+                onLaterPages=self._draw_page_frame,
+            )
+            return output_file
+
+        doc = self._build_doc(
+            output_file,
+            batch_name=batches[0].batch_name,
+            batch_count=len(batches[0].records),
+        )
 
         story = []
         for index, batch in enumerate(batches):
+            doc._batch_name = batch.batch_name
+            doc._batch_count = len(batch.records)
+
             story.extend(self._build_batch_story(batch))
+
             if index < len(batches) - 1:
                 story.append(PageBreak())
 
@@ -176,7 +176,12 @@ class PDFRenderer:
             output_file = split_dir / filename
             self.logger.info("Creating split PDF: %s", output_file)
 
-            doc = self._build_doc(output_file)
+            doc = self._build_doc(
+                output_file,
+                batch_name=batch.batch_name,
+                batch_count=len(batch.records),
+            )
+
             doc.build(
                 self._build_batch_story(batch),
                 onFirstPage=self._draw_page_frame,
@@ -186,8 +191,14 @@ class PDFRenderer:
 
         return output_paths
 
-    def _build_doc(self, output_file: Path) -> SimpleDocTemplate:
-        return SimpleDocTemplate(
+    def _build_doc(
+        self,
+        output_file: Path,
+        *,
+        batch_name: str,
+        batch_count: int,
+    ) -> SimpleDocTemplate:
+        doc = SimpleDocTemplate(
             str(output_file),
             pagesize=landscape(A4),
             leftMargin=self.render_cfg.left_margin_mm * mm,
@@ -195,6 +206,10 @@ class PDFRenderer:
             topMargin=self.render_cfg.top_margin_mm * mm,
             bottomMargin=self.render_cfg.bottom_margin_mm * mm,
         )
+
+        doc._batch_name = batch_name
+        doc._batch_count = batch_count
+        return doc
 
     def _create_zip(
         self,
@@ -213,25 +228,15 @@ class PDFRenderer:
 
     def _build_batch_story(self, batch: DeliveryBatch) -> List:
         story: List = []
-
         story.append(Spacer(1, self.render_cfg.story_top_spacer_mm * mm))
-        story.append(Paragraph(self._escape(self.render_cfg.title), self.title_style))
-        story.append(
-            Paragraph(
-                self._escape(
-                    f"Delivery person: {batch.batch_name} | Total records: {len(batch.records)}"
-                ),
-                self.meta_style,
-            )
-        )
-        story.append(Spacer(1, self.render_cfg.section_spacer_mm * mm))
         story.append(self._build_table(batch))
-
         return story
 
     def _build_table(self, batch: DeliveryBatch) -> LongTable:
         headers = [
             "S.No.",
+            "Consumer No.",
+            "Consumer Name",
             "Area",
             "Operator",
             "Booking",
@@ -255,6 +260,8 @@ class PDFRenderer:
             table_data.append(
                 [
                     self._p(str(idx)),
+                    self._p(record.consumer_number),
+                    self._p(record.consumer_name),
                     self._p(record.area),
                     self._p(record.operator_name),
                     self._p(record.booking_date),
@@ -276,23 +283,73 @@ class PDFRenderer:
         table.setStyle(
             TableStyle(
                 [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(self.render_cfg.header_background_hex)),
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.HexColor(self.render_cfg.header_background_hex),
+                    ),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
-                    ("GRID", (0, 0), (-1, -1), self.render_cfg.base_grid_line_width, colors.HexColor(self.render_cfg.grid_color_hex)),
-                    ("LINEBELOW", (0, 0), (-1, 0), self.render_cfg.header_line_width, colors.black),
-                    ("BOX", (7, 1), (7, -1), self.render_cfg.writable_box_line_width, colors.black),
-                    ("BOX", (8, 1), (8, -1), self.render_cfg.writable_box_line_width, colors.black),
+                    (
+                        "GRID",
+                        (0, 0),
+                        (-1, -1),
+                        self.render_cfg.base_grid_line_width,
+                        colors.HexColor(self.render_cfg.grid_color_hex),
+                    ),
+                    (
+                        "LINEBELOW",
+                        (0, 0),
+                        (-1, 0),
+                        self.render_cfg.header_line_width,
+                        colors.black,
+                    ),
+                    (
+                        "BOX",
+                        (9, 1),
+                        (9, -1),
+                        self.render_cfg.writable_box_line_width,
+                        colors.black,
+                    ),
+                    (
+                        "BOX",
+                        (10, 1),
+                        (10, -1),
+                        self.render_cfg.writable_box_line_width,
+                        colors.black,
+                    ),
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
-                    ("ALIGN", (1, 0), (4, -1), "CENTER"),
-                    ("ALIGN", (6, 0), (7, -1), "CENTER"),
-                    ("ALIGN", (9, 0), (9, -1), "CENTER"),
-                    ("ALIGN", (5, 0), (5, -1), "LEFT"),
-                    ("ALIGN", (8, 0), (8, -1), "LEFT"),
-                    ("TOPPADDING", (0, 0), (-1, -1), self.render_cfg.row_top_padding),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), self.render_cfg.row_bottom_padding),
-                    ("LEFTPADDING", (0, 0), (-1, -1), self.render_cfg.cell_left_padding),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), self.render_cfg.cell_right_padding),
+                    ("ALIGN", (0, 0), (1, -1), "CENTER"),   # S.No., Consumer No.
+                    ("ALIGN", (3, 0), (6, -1), "CENTER"),   # Area, Operator, Booking, Memo
+                    ("ALIGN", (8, 0), (9, -1), "CENTER"),   # Mobile, OTP
+                    ("ALIGN", (11, 0), (11, -1), "CENTER"), # Online
+                    ("ALIGN", (2, 0), (2, -1), "LEFT"),     # Consumer Name
+                    ("ALIGN", (7, 0), (7, -1), "LEFT"),     # Address
+                    ("ALIGN", (10, 0), (10, -1), "LEFT"),   # Signature
+                    (
+                        "TOPPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        self.render_cfg.row_top_padding,
+                    ),
+                    (
+                        "BOTTOMPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        self.render_cfg.row_bottom_padding,
+                    ),
+                    (
+                        "LEFTPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        self.render_cfg.cell_left_padding,
+                    ),
+                    (
+                        "RIGHTPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        self.render_cfg.cell_right_padding,
+                    ),
                 ]
             )
         )
@@ -318,7 +375,11 @@ class PDFRenderer:
         printed_at = datetime.now().strftime(self.render_cfg.printed_datetime_format)
 
         header_y = height - (self.render_cfg.page_header_y_mm * mm)
+        meta_y = header_y - (self.render_cfg.page_meta_y_offset_mm * mm)
         divider_y = height - (self.render_cfg.page_divider_y_mm * mm)
+
+        batch_name = getattr(doc, "_batch_name", "UNKNOWN")
+        batch_count = getattr(doc, "_batch_count", 0)
 
         canvas.saveState()
 
@@ -331,6 +392,12 @@ class PDFRenderer:
             width - doc.rightMargin,
             header_y,
             f"Page {doc.page} | Printed: {printed_at}",
+        )
+
+        canvas.drawString(
+            doc.leftMargin,
+            meta_y,
+            f"Delivery person: {batch_name} | Total records: {batch_count}",
         )
 
         canvas.setStrokeColor(colors.HexColor(self.render_cfg.grid_color_hex))

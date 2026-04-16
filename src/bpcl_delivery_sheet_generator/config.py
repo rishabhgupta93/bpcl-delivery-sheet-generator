@@ -22,6 +22,8 @@ class InputConfig:
             "eKYCOperatorName": "operator_name",
             "BookDate": "booking_date",
             "CashMemoDate": "cash_memo_date",
+            "ConsumerNumber": "consumer_number",
+            "ConsumerName": "consumer_name",
             "Address1": "address1",
             "Address2": "address2",
             "Address3": "address3",
@@ -35,6 +37,8 @@ class InputConfig:
             "eKYCOperatorName",
             "BookDate",
             "CashMemoDate",
+            "ConsumerNumber",
+            "ConsumerName",
             "Address1",
             "Address2",
             "Address3",
@@ -53,6 +57,7 @@ class TransformConfig:
     sort_by: List[str] = field(
         default_factory=lambda: [
             "area",
+            "consumer_name",
             "address1",
             "address2",
             "address3",
@@ -85,33 +90,29 @@ class RenderConfig:
     # page layout
     left_margin_mm: float = 4
     right_margin_mm: float = 4
-    top_margin_mm: float = 12
+    top_margin_mm: float = 16
     bottom_margin_mm: float = 10
 
-    # typography
-    title_font_size: float = 13.5
-    meta_font_size: float = 8.5
-    cell_font_size: float = 9.2
-    header_font_size: float = 9.0
+    # table/body typography
+    cell_font_size: float = 9.0
+    header_font_size: float = 8.6
+    cell_leading: float = 10.8
+    header_leading: float = 10.0
 
-    # spacing
-    title_leading: float = 16
-    meta_leading: float = 10
-    cell_leading: float = 11
-    header_leading: float = 10.5
+    # body spacing
+    story_top_spacer_mm: float = 2
 
-    story_top_spacer_mm: float = 4
-    section_spacer_mm: float = 2.5
-
-    row_top_padding: float = 8
-    row_bottom_padding: float = 8
-    cell_left_padding: float = 3
-    cell_right_padding: float = 3
+    row_top_padding: float = 7
+    row_bottom_padding: float = 7
+    cell_left_padding: float = 2.5
+    cell_right_padding: float = 2.5
 
     # header/footer drawing
     page_header_y_mm: float = 8
-    page_divider_y_mm: float = 10
+    page_meta_y_offset_mm: float = 4
+    page_divider_y_mm: float = 14
     footer_y_mm: float = 6
+
     page_header_font_size: float = 11
     page_meta_font_size: float = 8
     page_footer_font_size: float = 7.5
@@ -119,7 +120,6 @@ class RenderConfig:
     # styling
     header_background_hex: str = "#EDEDED"
     grid_color_hex: str = "#777777"
-    meta_text_hex: str = "#444444"
     footer_text_hex: str = "#555555"
 
     base_grid_line_width: float = 0.35
@@ -128,18 +128,23 @@ class RenderConfig:
     divider_line_width: float = 0.5
 
     # column widths in mm
+    # Final table columns expected:
+    # S.No., Consumer No., Consumer Name, Area, Operator, Booking,
+    # Memo, Address, Mobile, OTP, Signature, Online
     col_widths_mm: List[float] = field(
         default_factory=lambda: [
-            10,  # S.No.
-            18,  # Area
-            22,  # Operator
-            17,  # Booking
-            17,  # Memo
-            66,  # Address
-            22,  # Mobile
-            28,  # OTP
-            34,  # Signature
-            12,  # Online
+            9,   # S.No.
+            24,  # Consumer No.
+            34,  # Consumer Name
+            16,  # Area
+            18,  # Operator
+            15,  # Booking
+            15,  # Memo
+            52,  # Address
+            20,  # Mobile
+            22,  # OTP
+            28,  # Signature
+            10,  # Online
         ]
     )
 

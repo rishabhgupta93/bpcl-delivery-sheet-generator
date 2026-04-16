@@ -19,6 +19,8 @@ class DeliveryRecord:
     operator_name: str
     booking_date: str
     cash_memo_date: str
+    consumer_number: str
+    consumer_name: str
     address1: str
     address2: str
     address3: str

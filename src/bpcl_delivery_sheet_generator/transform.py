@@ -129,6 +129,8 @@ class DeliveryTransformer:
                     operator_name=row["operator_name"],
                     booking_date=row["booking_date"],
                     cash_memo_date=row["cash_memo_date"],
+                    consumer_number=row["consumer_number"],
+                    consumer_name=row["consumer_name"],
                     address1=row["address1"],
                     address2=row["address2"],
                     address3=row["address3"],
