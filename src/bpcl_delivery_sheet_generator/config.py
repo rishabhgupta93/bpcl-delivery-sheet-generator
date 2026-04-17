@@ -66,6 +66,23 @@ class TransformConfig:
 
 
 @dataclass(slots=True)
+class HeaderConfig:
+    """
+    Configuration for dynamic sheet header metadata.
+
+    These values are not part of delivery record data and should not live
+    inside transformation logic. They are display-time metadata.
+    """
+
+    price_10kg: float | None = None
+    price_14_2kg: float | None = None
+
+    price_10kg_label: str = "10 KG Price"
+    price_14_2kg_label: str = "14.2 KG Price"
+    currency_symbol: str = "₹"
+
+
+@dataclass(slots=True)
 class RenderConfig:
     """
     Configuration for PDF rendering.
@@ -179,6 +196,7 @@ class PackageConfig:
 
     input: InputConfig = field(default_factory=InputConfig)
     transform: TransformConfig = field(default_factory=TransformConfig)
+    header: HeaderConfig = field(default_factory=HeaderConfig)
     render: RenderConfig = field(default_factory=RenderConfig)
     output: OutputConfig = field(default_factory=OutputConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)

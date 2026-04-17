@@ -47,6 +47,7 @@ class PDFRenderer:
     ) -> None:
         self.config = config
         self.logger = logger
+        self.header_cfg = config.header
         self.render_cfg = config.render
 
         styles = getSampleStyleSheet()
@@ -319,13 +320,13 @@ class PDFRenderer:
                         colors.black,
                     ),
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("ALIGN", (0, 0), (1, -1), "CENTER"),   # S.No., Consumer No.
-                    ("ALIGN", (3, 0), (6, -1), "CENTER"),   # Area, Operator, Booking, Memo
-                    ("ALIGN", (8, 0), (9, -1), "CENTER"),   # Mobile, OTP
-                    ("ALIGN", (11, 0), (11, -1), "CENTER"), # Online
-                    ("ALIGN", (2, 0), (2, -1), "LEFT"),     # Consumer Name
-                    ("ALIGN", (7, 0), (7, -1), "LEFT"),     # Address
-                    ("ALIGN", (10, 0), (10, -1), "LEFT"),   # Signature
+                    ("ALIGN", (0, 0), (1, -1), "CENTER"),
+                    ("ALIGN", (3, 0), (6, -1), "CENTER"),
+                    ("ALIGN", (8, 0), (9, -1), "CENTER"),
+                    ("ALIGN", (11, 0), (11, -1), "CENTER"),
+                    ("ALIGN", (2, 0), (2, -1), "LEFT"),
+                    ("ALIGN", (7, 0), (7, -1), "LEFT"),
+                    ("ALIGN", (10, 0), (10, -1), "LEFT"),
                     (
                         "TOPPADDING",
                         (0, 0),
@@ -376,6 +377,7 @@ class PDFRenderer:
 
         header_y = height - (self.render_cfg.page_header_y_mm * mm)
         meta_y = header_y - (self.render_cfg.page_meta_y_offset_mm * mm)
+        price_y = meta_y - (self.render_cfg.page_meta_y_offset_mm * mm)
         divider_y = height - (self.render_cfg.page_divider_y_mm * mm)
 
         batch_name = getattr(doc, "_batch_name", "UNKNOWN")
@@ -399,6 +401,28 @@ class PDFRenderer:
             meta_y,
             f"Delivery person: {batch_name} | Total records: {batch_count}",
         )
+
+        price_parts: List[str] = []
+
+        if self.header_cfg.price_10kg is not None:
+            price_parts.append(
+                f"{self.header_cfg.price_10kg_label}: "
+                f"{self.header_cfg.currency_symbol}{self.header_cfg.price_10kg:.2f}"
+            )
+
+        if self.header_cfg.price_14_2kg is not None:
+            price_parts.append(
+                f"{self.header_cfg.price_14_2kg_label}: "
+                f"{self.header_cfg.currency_symbol}{self.header_cfg.price_14_2kg:.2f}"
+            )
+
+        if price_parts:
+            canvas.setFont("Helvetica-Bold", self.render_cfg.page_meta_font_size)
+            canvas.drawString(
+                doc.leftMargin,
+                price_y,
+                " | ".join(price_parts),
+            )
 
         canvas.setStrokeColor(colors.HexColor(self.render_cfg.grid_color_hex))
         canvas.setLineWidth(self.render_cfg.divider_line_width)

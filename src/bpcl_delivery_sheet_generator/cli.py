@@ -34,6 +34,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output mode: combined PDF, split PDFs, or both.",
     )
     parser.add_argument(
+        "--price-10kg",
+        type=float,
+        required=False,
+        help="Price of 10 KG cylinder to display in the sheet header.",
+    )
+    parser.add_argument(
+        "--price-14-2kg",
+        dest="price_14_2kg",
+        type=float,
+        required=False,
+        help="Price of 14.2 KG cylinder to display in the sheet header.",
+    )
+    parser.add_argument(
         "--log-level",
         default="INFO",
         help="Log level, for example: DEBUG, INFO, WARNING, ERROR.",
@@ -53,6 +66,9 @@ def main() -> None:
     config = PackageConfig()
     config.output.mode = args.mode
     config.logging.log_level = args.log_level.upper()
+
+    config.header.price_10kg = args.price_10kg
+    config.header.price_14_2kg = args.price_14_2kg
 
     service = DeliverySheetService(config=config)
     result = service.generate(
