@@ -151,8 +151,8 @@ class RenderConfig:
     col_widths_mm: List[float] = field(
         default_factory=lambda: [
             9,   # S.No.
-            20,  # Cash Memo No. ✅ NEW
-            24,  # Consumer No.
+            15,  # Cash Memo No. ✅ NEW
+            15,  # Consumer No.
             34,  # Consumer Name
             16,  # Area
             18,  # Operator

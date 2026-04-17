@@ -105,9 +105,15 @@ class PDFRenderer:
                 output_dir=output_path,
             )
 
-            if self.config.output.zip_split_outputs and result.split_pdf_paths:
+        if self.config.output.zip_split_outputs:
+            files_to_zip = []
+            if result.combined_pdf_path:
+                files_to_zip.append(result.combined_pdf_path)
+            files_to_zip.extend(result.split_pdf_paths)
+
+            if files_to_zip:
                 result.zip_path = self._create_zip(
-                    pdf_paths=result.split_pdf_paths,
+                    pdf_paths=files_to_zip,
                     output_dir=output_path,
                 )
 
@@ -218,12 +224,13 @@ class PDFRenderer:
         pdf_paths: List[Path],
         output_dir: Path,
     ) -> Path:
-        zip_path = output_dir / "delivery_handover_split_pdfs.zip"
+        zip_path = output_dir / "delivery_handover_outputs.zip"
         self.logger.info("Creating ZIP bundle: %s", zip_path)
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for pdf_path in pdf_paths:
-                zf.write(pdf_path, arcname=pdf_path.name)
+                if pdf_path.exists():
+                    zf.write(pdf_path, arcname=pdf_path.name)
 
         return zip_path
 
