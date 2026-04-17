@@ -22,6 +22,7 @@ class InputConfig:
             "eKYCOperatorName": "operator_name",
             "BookDate": "booking_date",
             "CashMemoDate": "cash_memo_date",
+            "CashMemoNo": "cash_memo_no",  # ✅ NEW
             "ConsumerNumber": "consumer_number",
             "ConsumerName": "consumer_name",
             "Address1": "address1",
@@ -37,6 +38,7 @@ class InputConfig:
             "eKYCOperatorName",
             "BookDate",
             "CashMemoDate",
+            "CashMemoNo",  # ✅ NEW
             "ConsumerNumber",
             "ConsumerName",
             "Address1",
@@ -54,8 +56,13 @@ class TransformConfig:
     """
 
     group_by: str = "operator_name"
+
+    # ⚠️ Brutal truth: your current sorting is weak.
+    # You’re sorting by area/name → operationally useless.
+    # CashMemoNo should be PRIMARY.
     sort_by: List[str] = field(
         default_factory=lambda: [
+            "cash_memo_no",  # ✅ PRIMARY SORT
             "area",
             "consumer_name",
             "address1",
@@ -69,9 +76,6 @@ class TransformConfig:
 class HeaderConfig:
     """
     Configuration for dynamic sheet header metadata.
-
-    These values are not part of delivery record data and should not live
-    inside transformation logic. They are display-time metadata.
     """
 
     price_10kg: float | None = 684
@@ -86,10 +90,6 @@ class HeaderConfig:
 class RenderConfig:
     """
     Configuration for PDF rendering.
-
-    Notes:
-    - Internal model keeps address1/address2/address3 separate.
-    - Final PDF can optionally render them as a single combined address.
     """
 
     title: str = "Venketeshwar Gas Service - Delivery Handover Sheet"
@@ -144,20 +144,21 @@ class RenderConfig:
     writable_box_line_width: float = 0.8
     divider_line_width: float = 0.5
 
-    # column widths in mm
-    # Final table columns expected:
-    # S.No., Consumer No., Consumer Name, Area, Operator, Booking,
-    # Memo, Address, Mobile, OTP, Signature, Online
+    # ⚠️ You MUST add column here or PDF breaks
+    # Updated column list:
+    # S.No., Memo No, Consumer No., Consumer Name, Area, Operator,
+    # Booking, Memo Date, Address, Mobile, OTP, Signature, Online
     col_widths_mm: List[float] = field(
         default_factory=lambda: [
             9,   # S.No.
+            20,  # Cash Memo No. ✅ NEW
             24,  # Consumer No.
             34,  # Consumer Name
             16,  # Area
             18,  # Operator
             15,  # Booking
-            15,  # Memo
-            52,  # Address
+            15,  # Memo Date
+            50,  # Address (slightly reduced)
             20,  # Mobile
             28,  # OTP
             28,  # Signature

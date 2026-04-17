@@ -236,12 +236,13 @@ class PDFRenderer:
     def _build_table(self, batch: DeliveryBatch) -> LongTable:
         headers = [
             "S.No.",
+            "Memo No.",
             "Consumer No.",
             "Consumer Name",
             "Area",
             "Operator",
             "Booking",
-            "Memo",
+            "Memo Date",
             "Address",
             "Mobile",
             "OTP",
@@ -261,6 +262,7 @@ class PDFRenderer:
             table_data.append(
                 [
                     self._p(str(idx)),
+                    self._p(record.cash_memo_no),
                     self._p(record.consumer_number),
                     self._p(record.consumer_name),
                     self._p(record.area),
@@ -307,26 +309,26 @@ class PDFRenderer:
                     ),
                     (
                         "BOX",
-                        (9, 1),
-                        (9, -1),
-                        self.render_cfg.writable_box_line_width,
-                        colors.black,
-                    ),
-                    (
-                        "BOX",
                         (10, 1),
                         (10, -1),
                         self.render_cfg.writable_box_line_width,
                         colors.black,
                     ),
+                    (
+                        "BOX",
+                        (11, 1),
+                        (11, -1),
+                        self.render_cfg.writable_box_line_width,
+                        colors.black,
+                    ),
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                    ("ALIGN", (0, 0), (1, -1), "CENTER"),
-                    ("ALIGN", (3, 0), (6, -1), "CENTER"),
-                    ("ALIGN", (8, 0), (9, -1), "CENTER"),
-                    ("ALIGN", (11, 0), (11, -1), "CENTER"),
-                    ("ALIGN", (2, 0), (2, -1), "LEFT"),
-                    ("ALIGN", (7, 0), (7, -1), "LEFT"),
-                    ("ALIGN", (10, 0), (10, -1), "LEFT"),
+                    ("ALIGN", (0, 0), (2, -1), "CENTER"),
+                    ("ALIGN", (4, 0), (7, -1), "CENTER"),
+                    ("ALIGN", (9, 0), (10, -1), "CENTER"),
+                    ("ALIGN", (12, 0), (12, -1), "CENTER"),
+                    ("ALIGN", (3, 0), (3, -1), "LEFT"),
+                    ("ALIGN", (8, 0), (8, -1), "LEFT"),
+                    ("ALIGN", (11, 0), (11, -1), "LEFT"),
                     (
                         "TOPPADDING",
                         (0, 0),
@@ -391,12 +393,10 @@ class PDFRenderer:
 
         canvas.saveState()
 
-        # Title
         canvas.setFillColor(colors.black)
         canvas.setFont("Helvetica-Bold", self.render_cfg.page_header_font_size)
         canvas.drawString(left_x, title_y, self.render_cfg.title)
 
-        # Page info
         canvas.setFont("Helvetica", self.render_cfg.page_meta_font_size)
         canvas.drawRightString(
             right_x,
@@ -404,14 +404,12 @@ class PDFRenderer:
             f"Page {doc.page} | Printed: {printed_at}",
         )
 
-        # Delivery person line
         canvas.drawString(
             left_x,
             meta_y,
             f"Delivery person: {batch_name} | Total records: {batch_count}",
         )
 
-        # Price line
         price_parts: List[str] = []
 
         if self.header_cfg.price_10kg is not None:
@@ -432,12 +430,10 @@ class PDFRenderer:
         else:
             price_y = meta_y
 
-        # Divider
         canvas.setStrokeColor(colors.HexColor(self.render_cfg.grid_color_hex))
         canvas.setLineWidth(self.render_cfg.divider_line_width)
         canvas.line(left_x, divider_y, right_x, divider_y)
 
-        # Footer
         if self.render_cfg.show_footer_note and self.render_cfg.footer_note.strip():
             canvas.setFillColor(colors.HexColor(self.render_cfg.footer_text_hex))
             canvas.setFont("Helvetica", self.render_cfg.page_footer_font_size)

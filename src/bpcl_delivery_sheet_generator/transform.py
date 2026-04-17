@@ -96,6 +96,10 @@ class DeliveryTransformer:
     def _sort_records(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Sort canonical dataframe using configured sort keys.
+
+        Special handling:
+        - cash_memo_no is sorted numerically when possible
+        - non-numeric or blank memo numbers are pushed after numeric values
         """
 
         sort_by = [self.config.transform.group_by] + self.config.transform.sort_by
@@ -106,7 +110,41 @@ class DeliveryTransformer:
             self.logger.error("Missing sort columns: %s", missing_sort_columns)
             raise ValueError(f"Missing sort columns: {missing_sort_columns}")
 
-        return df.sort_values(by=sort_by, kind="stable").reset_index(drop=True)
+        working_df = df.copy()
+
+        temp_sort_columns: List[str] = []
+        final_sort_columns: List[str] = []
+
+        for col in sort_by:
+            if col == "cash_memo_no":
+                numeric_col = "__cash_memo_no_numeric"
+                missing_flag_col = "__cash_memo_no_missing_flag"
+                text_col = "__cash_memo_no_text"
+
+                numeric_series = pd.to_numeric(working_df[col], errors="coerce")
+
+                working_df[missing_flag_col] = numeric_series.isna().astype(int)
+                working_df[numeric_col] = numeric_series.fillna(0)
+                working_df[text_col] = working_df[col]
+
+                temp_sort_columns.extend(
+                    [missing_flag_col, numeric_col, text_col]
+                )
+                final_sort_columns.extend(
+                    [missing_flag_col, numeric_col, text_col]
+                )
+            else:
+                final_sort_columns.append(col)
+
+        sorted_df = (
+            working_df.sort_values(by=final_sort_columns, kind="stable")
+            .reset_index(drop=True)
+        )
+
+        if temp_sort_columns:
+            sorted_df = sorted_df.drop(columns=temp_sort_columns, errors="ignore")
+
+        return sorted_df
 
     def _build_batches(self, df: pd.DataFrame) -> List[DeliveryBatch]:
         """
@@ -129,6 +167,7 @@ class DeliveryTransformer:
                     operator_name=row["operator_name"],
                     booking_date=row["booking_date"],
                     cash_memo_date=row["cash_memo_date"],
+                    cash_memo_no=row["cash_memo_no"],
                     consumer_number=row["consumer_number"],
                     consumer_name=row["consumer_name"],
                     address1=row["address1"],
