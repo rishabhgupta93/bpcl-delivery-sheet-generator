@@ -152,7 +152,7 @@ class RenderConfig:
         default_factory=lambda: [
             9,   # S.No.
             15,  # Cash Memo No. ✅ NEW
-            15,  # Consumer No.
+            20,  # Consumer No.
             34,  # Consumer Name
             16,  # Area
             18,  # Operator
