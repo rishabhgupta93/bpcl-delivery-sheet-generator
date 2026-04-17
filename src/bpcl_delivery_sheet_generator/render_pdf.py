@@ -375,33 +375,43 @@ class PDFRenderer:
         width, height = landscape(A4)
         printed_at = datetime.now().strftime(self.render_cfg.printed_datetime_format)
 
-        header_y = height - (self.render_cfg.page_header_y_mm * mm)
-        meta_y = header_y - (self.render_cfg.page_meta_y_offset_mm * mm)
-        price_y = meta_y - (self.render_cfg.page_meta_y_offset_mm * mm)
-        divider_y = height - (self.render_cfg.page_divider_y_mm * mm)
-
         batch_name = getattr(doc, "_batch_name", "UNKNOWN")
         batch_count = getattr(doc, "_batch_count", 0)
 
+        left_x = doc.leftMargin
+        right_x = width - doc.rightMargin
+
+        header_top_y = height - (self.render_cfg.page_header_y_mm * mm)
+        line_gap = 4.2 * mm
+
+        title_y = header_top_y
+        meta_y = title_y - line_gap
+        price_y = meta_y - line_gap
+        divider_y = price_y - 2.5 * mm
+
         canvas.saveState()
 
+        # Title
         canvas.setFillColor(colors.black)
         canvas.setFont("Helvetica-Bold", self.render_cfg.page_header_font_size)
-        canvas.drawString(doc.leftMargin, header_y, self.render_cfg.title)
+        canvas.drawString(left_x, title_y, self.render_cfg.title)
 
+        # Page info
         canvas.setFont("Helvetica", self.render_cfg.page_meta_font_size)
         canvas.drawRightString(
-            width - doc.rightMargin,
-            header_y,
+            right_x,
+            title_y,
             f"Page {doc.page} | Printed: {printed_at}",
         )
 
+        # Delivery person line
         canvas.drawString(
-            doc.leftMargin,
+            left_x,
             meta_y,
             f"Delivery person: {batch_name} | Total records: {batch_count}",
         )
 
+        # Price line
         price_parts: List[str] = []
 
         if self.header_cfg.price_10kg is not None:
@@ -418,26 +428,21 @@ class PDFRenderer:
 
         if price_parts:
             canvas.setFont("Helvetica-Bold", self.render_cfg.page_meta_font_size)
-            canvas.drawString(
-                doc.leftMargin,
-                price_y,
-                " | ".join(price_parts),
-            )
+            canvas.drawString(left_x, price_y, " | ".join(price_parts))
+        else:
+            price_y = meta_y
 
+        # Divider
         canvas.setStrokeColor(colors.HexColor(self.render_cfg.grid_color_hex))
         canvas.setLineWidth(self.render_cfg.divider_line_width)
-        canvas.line(
-            doc.leftMargin,
-            divider_y,
-            width - doc.rightMargin,
-            divider_y,
-        )
+        canvas.line(left_x, divider_y, right_x, divider_y)
 
+        # Footer
         if self.render_cfg.show_footer_note and self.render_cfg.footer_note.strip():
             canvas.setFillColor(colors.HexColor(self.render_cfg.footer_text_hex))
             canvas.setFont("Helvetica", self.render_cfg.page_footer_font_size)
             canvas.drawString(
-                doc.leftMargin,
+                left_x,
                 self.render_cfg.footer_y_mm * mm,
                 self.render_cfg.footer_note,
             )

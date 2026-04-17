@@ -79,7 +79,7 @@ class HeaderConfig:
 
     price_10kg_label: str = "10 KG Price"
     price_14_2kg_label: str = "14.2 KG Price"
-    currency_symbol: str = "₹"
+    currency_symbol: str = "Rs. "
 
 
 @dataclass(slots=True)
