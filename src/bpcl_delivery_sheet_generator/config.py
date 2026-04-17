@@ -74,8 +74,8 @@ class HeaderConfig:
     inside transformation logic. They are display-time metadata.
     """
 
-    price_10kg: float | None = None
-    price_14_2kg: float | None = None
+    price_10kg: float | None = 684
+    price_14_2kg: float | None = 948.50
 
     price_10kg_label: str = "10 KG Price"
     price_14_2kg_label: str = "14.2 KG Price"
