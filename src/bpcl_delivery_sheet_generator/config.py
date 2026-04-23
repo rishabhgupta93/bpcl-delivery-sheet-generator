@@ -93,7 +93,7 @@ class RenderConfig:
     """
 
     title: str = "Venketeshwar Gas Service - Delivery Handover Sheet"
-    footer_note: str = "Collect OTP, take signature, and mark online delivery status."
+    footer_note: str = "Dear Customer. Download your e-invoice link in delivered message within 7 days."
 
     use_combined_address: bool = True
     address_separator: str = ", "
@@ -132,7 +132,7 @@ class RenderConfig:
 
     page_header_font_size: float = 11
     page_meta_font_size: float = 8
-    page_footer_font_size: float = 7.5
+    page_footer_font_size: float = 8
 
     # styling
     header_background_hex: str = "#EDEDED"
