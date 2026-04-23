@@ -132,7 +132,7 @@ class RenderConfig:
 
     page_header_font_size: float = 11
     page_meta_font_size: float = 8
-    page_footer_font_size: float = 8
+    page_footer_font_size: float = 11
 
     # styling
     header_background_hex: str = "#EDEDED"
