@@ -93,7 +93,7 @@ class RenderConfig:
     """
 
     title: str = "Venketeshwar Gas Service - Delivery Handover Sheet"
-    footer_note: str = "Dear Customer. Download your e-invoice link in delivered message within 7 days."
+    footer_note: str = "Dear Customer. Download your e-invoice using the link (irt.bpcl.in) in delivered message within 7 days."
 
     use_combined_address: bool = True
     address_separator: str = ", "
